@@ -1,0 +1,233 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smart Gym Digital Twin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Smart Gym Digital Twin</h1>
+        <p>Real-Time Athlete Monitoring and Injury Risk Prediction</p>
+      </div>
+      <div class="topbar-right">
+        <span id="globalStatus" class="status-pill status-active">ACTIVE / MONITORING</span>
+        <div class="athlete-mini-card">
+          <span class="label">Athlete Profile</span>
+          <strong id="selectedAthleteTop">Intermediate</strong>
+        </div>
+      </div>
+    </header>
+
+    <nav class="tab-nav">
+      <button class="tab-btn active" data-tab="dashboardTab">Dashboard</button>
+      <button class="tab-btn" data-tab="modelTab">AI Model</button>
+    </nav>
+
+    <main>
+      <section id="dashboardTab" class="tab-page active">
+        <div class="dashboard-grid">
+          <aside class="panel metrics-panel">
+            <h2>Live Metrics</h2>
+            <div class="metric-cards" id="metricCards"></div>
+          </aside>
+
+          <section class="panel viewer-panel">
+            <h2>3D Athlete Viewer</h2>
+            <div id="viewer3d" class="viewer3d"></div>
+            <p id="viewerFallback" class="viewer-fallback hidden">
+              3D model not available. Place <code>gym.fbx</code> at <code>app/static/model/gym.fbx</code>.
+            </p>
+          </section>
+
+          <aside class="panel insights-panel">
+            <h2>AI Insights</h2>
+            <div class="risk-main">
+              <span>Injury Risk</span>
+              <strong id="riskValue">--%</strong>
+            </div>
+            <div class="risk-badge-row">
+              <span id="riskLevel" class="risk-badge low">LOW</span>
+              <span id="modelConnected" class="connected">LSTM model connected</span>
+            </div>
+            <div class="insight-block">
+              <h3>Predicted State</h3>
+              <p id="predictedState">Waiting for prediction...</p>
+            </div>
+            <div class="insight-block">
+              <h3>Recommendation</h3>
+              <p id="recommendation">Set training values and click Predict Risk.</p>
+            </div>
+            <div class="insight-block">
+              <h3>Coach Insight</h3>
+              <p id="coachInsight">No active insight yet.</p>
+            </div>
+          </aside>
+        </div>
+
+        <section class="panel controls-panel">
+          <h2>Session Controls</h2>
+          <div class="controls-grid">
+            <label>Athlete Profile
+              <select id="athleteProfile">
+                <option>Beginner</option>
+                <option selected>Intermediate</option>
+                <option>Advanced</option>
+              </select>
+            </label>
+
+            <label>Exercise Type
+              <select id="exerciseType">
+                <option>Squat</option>
+                <option>Bench Press</option>
+                <option>Deadlift</option>
+                <option>HIIT</option>
+              </select>
+            </label>
+
+            <label>Intensity <span id="intensityLabel">60</span>
+              <input id="sessionIntensity" type="range" min="0" max="100" value="60" />
+            </label>
+
+            <label>Recovery Score <span id="recoveryLabel">70</span>
+              <input id="recoveryScore" type="range" min="0" max="100" value="70" />
+            </label>
+
+            <label>Hydration Level <span id="hydrationLabel">75</span>
+              <input id="hydrationLevel" type="range" min="0" max="100" value="75" />
+            </label>
+
+            <label>Sleep Quality <span id="sleepLabel">70</span>
+              <input id="sleepQuality" type="range" min="0" max="100" value="70" />
+            </label>
+
+            <label>Heart Rate (bpm)
+              <input id="heartRate" type="number" min="55" max="200" value="135" />
+            </label>
+
+            <label>Fatigue (%)
+              <input id="fatigue" type="number" min="0" max="100" value="55" />
+            </label>
+
+            <label>Load (kg)
+              <input id="load" type="number" min="20" max="180" value="80" />
+            </label>
+
+            <label>Reps
+              <input id="reps" type="number" min="1" max="20" value="8" />
+            </label>
+
+            <label>Power Output (W)
+              <input id="powerOutput" type="number" min="40" max="2200" value="520" />
+            </label>
+          </div>
+
+          <div class="btn-row">
+            <button id="predictBtn" class="btn btn-primary">Predict Risk</button>
+            <button id="simulateBtn" class="btn btn-secondary">Simulate Intense Set</button>
+            <button id="resetBtn" class="btn btn-ghost">Reset</button>
+          </div>
+        </section>
+
+        <section class="charts-grid">
+          <article class="panel chart-panel">
+            <h3>Heart Rate Trend</h3>
+            <canvas id="heartRateChart"></canvas>
+          </article>
+          <article class="panel chart-panel">
+            <h3>Fatigue Trend</h3>
+            <canvas id="fatigueChart"></canvas>
+          </article>
+          <article class="panel chart-panel">
+            <h3>Injury Risk Trend</h3>
+            <canvas id="riskChart"></canvas>
+          </article>
+        </section>
+      </section>
+
+      <section id="modelTab" class="tab-page">
+        <div class="model-grid">
+          <article class="panel">
+            <h2>Model Summary</h2>
+            <ul id="modelSummaryList" class="clean-list"></ul>
+          </article>
+
+          <article class="panel">
+            <h2>Why LSTM</h2>
+            <p>
+              Athlete state evolves over time. Injury risk depends on recent time steps,
+              not a single instant, so an LSTM is suitable for sequential workout signals.
+            </p>
+          </article>
+
+          <article class="panel">
+            <h2>Input Features</h2>
+            <ul id="featureList" class="feature-list"></ul>
+          </article>
+
+          <article class="panel">
+            <h2>Output</h2>
+            <p>The model predicts an injury risk score from 0 to 100.</p>
+          </article>
+
+          <article class="panel">
+            <h2>Evaluation Metrics</h2>
+            <div id="metricsCards" class="metrics-mini"></div>
+            <p class="metrics-note">
+              Low MAE means average prediction error is small. High R2 means the model explains a large part of target variance.
+            </p>
+          </article>
+
+          <article class="panel">
+            <h2>Saved Model File</h2>
+            <p>
+              <code>models/smart_gym_lstm.keras</code> stores the trained architecture and weights,
+              so the backend can reuse the model directly without retraining.
+            </p>
+          </article>
+
+          <article class="panel full-width">
+            <h2>Training and Evaluation Graphs</h2>
+            <div class="result-images">
+              <figure>
+                <img src="/results-image/training_loss.png" alt="Training and validation loss" />
+                <figcaption>Training Loss vs Validation Loss</figcaption>
+              </figure>
+              <figure>
+                <img src="/results-image/actual_vs_predicted.png" alt="Actual vs predicted injury risk" />
+                <figcaption>Actual vs Predicted Injury Risk</figcaption>
+              </figure>
+              <figure>
+                <img src="/results-image/risk_distribution.png" alt="Injury risk distribution" />
+                <figcaption>Injury Risk Distribution</figcaption>
+              </figure>
+            </div>
+          </article>
+
+          <article class="panel full-width">
+            <h2>Digital Twin Explanation</h2>
+            <p>
+              This project is a Digital Twin because it represents an athlete with a virtual monitoring layer.
+              Workout variables simulate real-time state updates, and the AI model predicts risk states to support
+              faster coaching decisions.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/vendor/chart.umd.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/three.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/OrbitControls.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/fflate.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/vendor/FBXLoader.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
