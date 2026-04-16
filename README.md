@@ -147,5 +147,8 @@ Additional routes:
 - Sequences are built **per session** so windows do not span different workouts.
 - Each training sample uses the **previous 10** time steps of the selected features to predict **injury risk at the same session time index** (see `src/preprocess.py`).
 
-## Demo Video
+## Demo Video (Web, using built keras model)
+https://github.com/user-attachments/assets/a739f366-36b5-478c-b9a8-00362decdbb4
+
+## Demo Video (Model)
 https://github.com/user-attachments/assets/fb9d7ee3-cf80-42b1-a7a6-a1b2c9ec502a
