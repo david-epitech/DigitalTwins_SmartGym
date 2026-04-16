@@ -1,5 +1,5 @@
 Smart Gym Digital Twin – evaluation metrics (test set)
 =====================================================
-MSE: 5.465861
-MAE: 1.857191
-R2:  0.986371
+MSE: 5.541048
+MAE: 1.871114
+R2:  0.986183
